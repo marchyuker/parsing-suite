@@ -2,6 +2,7 @@ import re
 import sys
 import os
 import json
+import numpy as np
 
 def parseNumeric(text) :
     return ''.join(re.findall(r'[0-9.]', text))
@@ -129,6 +130,27 @@ def flatten_power_dic(entry, picks):
     else :
         return {}
     
+def flatten_teams_vpt_camera_dic(entry):
+    if "vpt_output_obj" in entry and "vpt_output_data" in entry["vpt_output_obj"] :
+        copied = entry["vpt_output_obj"].copy()
+        new_output = dict()
+        new_output['min_cam_fps'] = copied["min_cam_fps"]
+        new_output['median_cam_fps'] = copied["median_cam_fps"]
+        new_output['vpt_output_path'] = copied["vpt_output_path"]
+        return new_output
+    else :
+        return {}
+    
+def flatten_procyon_xml_dic(entry):
+    if "procyon_result_obj" in entry and "procyon_data" in entry["procyon_result_obj"] :
+        copied = entry["procyon_result_obj"]["procyon_data"].copy()
+        new_output = dict()
+        new_output['procyon_overall_score'] = copied["procyon_overall_score"]
+        new_output['procyon_xml_path'] = entry["procyon_result_obj"]["procyon_xml_path"]
+        return new_output
+    else :
+        return {}
+    
 def flatten_trace_dic(entry):
     if "trace_obj" in entry and "trace_data" in entry["trace_obj"] and entry["trace_obj"]["trace_data"] != None:
         copied = entry["trace_obj"]['trace_data'].copy()
@@ -205,6 +227,9 @@ def flatten_pcie_socwatch_dic(entry, pcie_socwatch_targets):
         return flat_socwatch
     else :
         return {}
+
+def get_median(values) :
+    return np.median(values)
         
 def errorAndExit(msgs) :
     print("=============================================================================")

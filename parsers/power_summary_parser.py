@@ -6,11 +6,12 @@ fields = []
 rows = []
 
 # for LNL
-AVERAGE = "Average"
+target_column = ""
 
 
 def parsePowerSummaryCSV(csv_path, DAQ_target) :
     
+    target_column = DAQ_target["TARGET_COLUMN"] if "TARGET_COLUMN" in DAQ_target else "Average"
     power_data = dict()
     power_obj = {"power_data":power_data}
     # reading csv file
@@ -25,9 +26,9 @@ def parsePowerSummaryCSV(csv_path, DAQ_target) :
 
         avr_index = -1
         try:
-            avr_index = fields.index(AVERAGE)
+            avr_index = fields.index(target_column)
         except:
-            tools.errorAndExit(f"{AVERAGE} is NOT in the CSV header")
+            tools.errorAndExit(f"{target_column} is NOT in the CSV header")
 
         # print("=======", csvreader)
         for row in csvreader:
@@ -56,3 +57,10 @@ def parsePowerSummaryCSV(csv_path, DAQ_target) :
         return power_obj
 
 
+def parseHopperRuntime(result_path, DAQ_target) :
+    
+    result_json = tools.jsonLoader(result_path, None)
+    if "flexlogger" in result_json:
+        return result_json["flexlogger"]["timing"]["duration gather window"]
+    else:
+        return None

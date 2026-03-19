@@ -11,7 +11,7 @@ A simple Python tool for batch processing SocWatch .etl files using socwatch.exe
 - 📁 **Recursive scanning** for .etl files in input folders
 - 🎯 **Automated processing** using file prefixes as input parameters
 - ⏱️ **Time slicing** - Process specific time ranges from traces (supports multiple slices per file)
-- 📊 **JSON Export** - Generate .swjson files with detailed trace data for advanced analysis
+- 📊 **Export Formats** - Generate `.swjson` (`-r json`) or VTune `.pwr` (`-r vtune`) outputs
 - 📈 **Comprehensive reporting** of processing results
 - ✅ **Simple single-file solution** - no external dependencies
 - 🛠️ **Flexible SocWatch location** - supports custom installation paths
@@ -81,7 +81,10 @@ python socwatch_pp.py -o D:\results C:\data\traces
 python socwatch_pp.py --output-dir D:\results C:\data\traces
 
 # Export .swjson format with extra details
-python socwatch_pp.py -r C:\data\traces
+python socwatch_pp.py -r json C:\data\traces
+
+# Export VTune .pwr format
+python socwatch_pp.py -r vtune C:\data\traces
 
 # Force reprocessing even if output already exists
 python socwatch_pp.py -f C:\data\traces
@@ -95,10 +98,10 @@ python socwatch_pp.py --slice-range 1000,5000 --slice-range 10000,15000 C:\data\
 python socwatch_pp.py --slice-range 0,10000 --slice-range 20000,30000 --slice-range 40000,50000 C:\data\traces
 
 # Combine options (CLI mode with custom SocWatch directory, output, slicing, and JSON export)
-python socwatch_pp.py --cli --socwatch-dir C:\Intel\SocWatch -o D:\results -r --slice-range 1000,15000 C:\data\traces
+python socwatch_pp.py --cli --socwatch-dir C:\Intel\SocWatch -o D:\results -r json --slice-range 1000,15000 C:\data\traces
 
 # Force reprocessing with JSON export and custom output
-python socwatch_pp.py --force -r -o D:\results C:\data\traces
+python socwatch_pp.py --force -r json -o D:\results C:\data\traces
 
 # Show help
 python socwatch_pp.py --help
@@ -122,7 +125,7 @@ The `-f` or `--force` option allows you to reprocess .etl files even if output f
 python socwatch_pp.py --force C:\data\traces
 
 # Force reprocessing with JSON export
-python socwatch_pp.py -f -r C:\data\traces
+python socwatch_pp.py -f -r json C:\data\traces
 
 # Combine with other options
 python socwatch_pp.py --force --slice-range 1000,15000 -o D:\results C:\data\traces
@@ -164,10 +167,10 @@ python socwatch_pp.py --slice-range 5000,15000 --slice-range 30000,40000 C:\data
 
 ## JSON Export Feature
 
-The `-r` option enables export of trace data in `.swjson` format with enhanced details:
+The `-r json` option enables export of trace data in `.swjson` format with enhanced details:
 
-- **Format**: `-r` (no additional arguments needed)
-- **SocWatch Flags**: Automatically passes `-m` (detailed metrics) and `-r` (JSON report) to socwatch.exe
+- **Format**: `-r json`
+- **SocWatch Flags**: Automatically passes `-m` (detailed metrics) and `-r json` (JSON report) to socwatch.exe
 - **Output**: Generates `.swjson` files alongside standard CSV reports
 - **Use Cases**:
   - Advanced data analysis with custom tools
@@ -178,13 +181,13 @@ The `-r` option enables export of trace data in `.swjson` format with enhanced d
 **Example Usage:**
 ```bash
 # Export trace data in .swjson format
-python socwatch_pp.py -r C:\data\traces
+python socwatch_pp.py -r json C:\data\traces
 
 # Combine with time slicing
-python socwatch_pp.py -r --slice-range 1000,15000 C:\data\traces
+python socwatch_pp.py -r json --slice-range 1000,15000 C:\data\traces
 
 # Full workflow: export JSON, slice time range, and save to custom location
-python socwatch_pp.py -r --slice-range 5000,15000 -o D:\results C:\data\traces
+python socwatch_pp.py -r json --slice-range 5000,15000 -o D:\results C:\data\traces
 ```
 
 **What gets generated:**
@@ -194,6 +197,23 @@ python socwatch_pp.py -r --slice-range 5000,15000 -o D:\results C:\data\traces
 - Enhanced metrics enabled by the `-m` flag
 
 **Note:** The `.swjson` files can be analyzed using the `swjson_parser.py` tool in the `parsing-suite` folder for event visualization and metrics extraction.
+
+## VTune Export Feature
+
+The `-r vtune` option enables VTune-compatible `.pwr` export:
+
+- **Format**: `-r vtune`
+- **SocWatch Flags**: Passes `-r vtune` to socwatch.exe
+- **Output**: Generates `.pwr` files alongside standard CSV reports
+
+**Example Usage:**
+```bash
+# Export VTune .pwr output
+python socwatch_pp.py -r vtune C:\data\traces
+
+# Combine with slicing and custom output
+python socwatch_pp.py -r vtune --slice-range 1000,15000 -o D:\results C:\data\traces
+```
 
 ## How It Works
 
@@ -224,7 +244,8 @@ python socwatch_pp.py -r --slice-range 5000,15000 -o D:\results C:\data\traces
    - Extracts the file prefix (filename without .etl extension)
    - Skips if already processed (summary or wakeup analysis files exist)
    - Runs: `socwatch.exe -i <prefix> -o <output_folder>`
-   - With `-r` flag: `socwatch.exe -i <prefix> -o <output_folder> -m -r` (exports .swjson)
+   - With `-r json`: `socwatch.exe -i <prefix> -o <output_folder> -m -r json` (exports `.swjson`)
+   - With `-r vtune`: `socwatch.exe -i <prefix> -o <output_folder> -r vtune` (exports `.pwr`)
    - Changes to the file's directory before processing
    - For network paths: copies results from temp to final location
 

@@ -184,8 +184,9 @@ class SocWatchProcessor:
         summary_csv = output_dir / f"{etl_base_name}.csv"
         summary_csv_alt = output_dir / f"{etl_base_name}_summary.csv"
         wakeup_csv = output_dir / f"{etl_base_name}_WakeupAnalysis.csv"
+        vtune_pwr = output_dir / f"{etl_base_name}.pwr"
         
-        return summary_csv.exists() or summary_csv_alt.exists() or wakeup_csv.exists()
+        return summary_csv.exists() or summary_csv_alt.exists() or wakeup_csv.exists() or vtune_pwr.exists()
     
     def _copy_results_to_final(self, work_dir: Path, final_dir: Path, etl_base_name: str):
         """
@@ -200,7 +201,7 @@ class SocWatchProcessor:
         try:
             # Find generated files with the ETL base name
             # SocWatch may write to work_dir or its parent
-            patterns = ['*.csv', '*.html', '*.json', '*.swjson', '*.txt', '*.xml']
+            patterns = ['*.csv', '*.html', '*.json', '*.swjson', '*.txt', '*.xml', '*.pwr']
             generated_files = []
             
             search_dirs = [work_dir, work_dir.parent]
@@ -718,9 +719,12 @@ class SocWatchProcessor:
             "-o", str(paths.work_dir)
         ]
         
-        # Add -m and -r flags if export format is specified
+        # Add export flags if export format is specified
         if self.export_format:
-            cmd.extend(["-m", "-r", self.export_format])
+            if self.export_format == 'json':
+                cmd.extend(["-m", "-r", self.export_format])
+            elif self.export_format == 'vtune':
+                cmd.extend(["-r", self.export_format])
         
         # Add slice range parameter if specified
         if slice_range:
@@ -745,7 +749,10 @@ class SocWatchProcessor:
         print(f"      -i {etl_base_name}")
         print(f"      -o {paths.work_dir}")
         if self.export_format:
-            print(f"      -m -r {self.export_format} (export .swjson with extra details)")
+            if self.export_format == 'json':
+                print(f"      -m -r {self.export_format} (export .swjson with extra details)")
+            elif self.export_format == 'vtune':
+                print(f"      -r {self.export_format} (export .pwr VTune results)")
         if slice_range:
             print(f"      --result-slice-range {slice_range[0]},{slice_range[1]}")
         
@@ -970,7 +977,7 @@ def main():
             print("  --socwatch-dir <path>         Specify SocWatch directory or exe (skips version selection)")
             print("  -o, --output-dir <path>       Specify output directory (default: same as input)")
             print("  -f, --force                   Force reprocessing even if output already exists")
-            print("  -r <format>                   Export in specified format: 'json' for .swjson with extra details")
+            print("  -r <format>                   Export format: 'json' (swjson) or 'vtune' (.pwr)")
             print("  --slice-range <start,end>     Time slice range in milliseconds (can be specified multiple times)")
             print("\nModes:")
             print("  python socwatch_pp.py                    # GUI mode - select folder with dialog")
@@ -984,6 +991,7 @@ def main():
             print("  python socwatch_pp.py --output-dir D:\\results C:\\data  # Save results to local directory")
             print("  python socwatch_pp.py --socwatch-dir C:\\socwatch\\2025.5.0 C:\\data  # Skip version selection")
             print("  python socwatch_pp.py -r json C:\\data               # Export .swjson format")
+            print("  python socwatch_pp.py -r vtune C:\\data              # Export .pwr VTune format")
             print("  python socwatch_pp.py --slice-range 1000,15000 C:\\data  # Process with time slice")
             print("  python socwatch_pp.py --slice-range 1000,5000 --slice-range 10000,15000 C:\\data  # Multiple slices")
             print("\nNetwork Paths:")
@@ -1018,14 +1026,17 @@ def main():
         
         elif arg == '-r':
             if i + 1 >= len(args):
-                print("❌ -r requires a value (e.g., 'json')")
+                print("❌ -r requires a value: 'json' or 'vtune'")
                 sys.exit(1)
             r_value = args[i + 1].lower()
-            if r_value == 'json':
+            if r_value in ['json', 'vtune']:
                 export_format = r_value
-                print(f"📊 .swjson export enabled (will use -m -r {r_value} flags)")
+                if r_value == 'json':
+                    print(f"📊 .swjson export enabled (will use -m -r {r_value} flags)")
+                else:
+                    print(f"📊 VTune export enabled (will use -r {r_value} and generate .pwr)")
             else:
-                print(f"❌ Invalid value for -r: '{args[i + 1]}'. Expected 'json'")
+                print(f"❌ Invalid value for -r: '{args[i + 1]}'. Expected 'json' or 'vtune'")
                 sys.exit(1)
             i += 1  # Skip next argument as it's the -r value
             
