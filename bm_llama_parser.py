@@ -306,9 +306,9 @@ def add_socwatch(abs_path):
         tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
     if SOCWATCH not in dataset["data_type"] :
         dataset["data_type"].insert(0, SOCWATCH)
-    dataset["socwatch_obj"] = soc.parseSocwatch(abs_path, socwatch_targets)
-    global file_num
-    file_num += 1
+        dataset["socwatch_obj"] = soc.parseSocwatch(abs_path, socwatch_targets)
+        global file_num
+        file_num += 1
 
 def add_pcie_only(abs_path):
     path_set = tools.splitLastItem(abs_path, "\\", 1)
@@ -317,9 +317,9 @@ def add_pcie_only(abs_path):
         tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
     if PCIE not in dataset["data_type"] :
         dataset["data_type"].insert(0, PCIE)
-    dataset["pcie_socwatch_obj"] = psoc.parsePCIe(abs_path, PCIe_targets)
-    global file_num
-    file_num += 1
+        dataset["pcie_socwatch_obj"] = psoc.parsePCIe(abs_path, PCIe_targets)
+        global file_num
+        file_num += 1
 
 
 def fileClassifier(abs_path, f):
@@ -372,9 +372,7 @@ def detectAndParseFile(path) :
         #     break
         if os.path.isfile(abs_path):
             fType = fileClassifier(abs_path, f)
-            if fType == CL_SOCWATCH :
-                # after detecting first Socwatch ETL, and it's summary, no need to go further
-                break
+
         elif f != "MSTeamsLogs" and f != "Training":
             # only creates data set if not collected through HOBL. 
             if args.hobl == None or args.hobl == False:

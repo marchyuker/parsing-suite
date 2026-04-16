@@ -6,7 +6,7 @@ from pathlib import Path
 from os import listdir
 from os.path import isfile, join
 import parsers.tools as tools
-import parsers.vpt_output_parser as vop
+import parsers.sr_output_parser as sop
 import parsers.socwatch_summary_parser as soc
 import parsers.power_summary_parser as psp
 import parsers.power_trace_parser as ptp
@@ -16,7 +16,7 @@ import parsers.reporter as rpt
 import argparse
 
 
-parser = argparse.ArgumentParser(prog='Teams summary parser')
+parser = argparse.ArgumentParser(prog='LPmode Store Random summary parser')
 parser.add_argument('-c', '--config', help='configuration path. json format, need to have all of -d -st and others')
 parser.add_argument('-i', '--input', help='input path. this will be the bese of the summray, will detect all files and folders from that path tree')
 parser.add_argument('-o', '--output', help='output path. location of file and file name')
@@ -33,7 +33,7 @@ print("args: ", args)
 
 CL_UNCLASSIFIED = "unclassified"
 CL_ETL = ".etl"
-CL_OUTPUT = '_output.txt'
+CL_OUTPUT = '-log.txt'
 CL_SOCWATCH = 'Session.etl'
 CL_AI_MODEL = '_qdq_proxy_'
 CL_DAQ_SUMMARY = 'pacs-summary.csv'      
@@ -41,7 +41,6 @@ CL_FLEX_SUMMARY = 'Raw_Summary.csv'
 CL_FLEX_RESULTS = '-results.json'
 CL_DAQ_TRACES = 'pacs-traces'
 CL_PASS = "-hopper.json"
-CL_VPT = "vpt_output.log"
 
 
 ETL = "ETL"
@@ -125,7 +124,7 @@ else :
 print("===== args hobl: ", args.hobl)
 
 if result_csv == None : 
-    result_csv = f"{BASE}\\Phi_summary"
+    result_csv = f"{BASE}\\LPmode"
 
 '''
 ====================================================================================
@@ -186,15 +185,6 @@ def add_etl(abs_path):
         dataset["data_type"].insert(0, ETL)
     dataset["etl_path"] = abs_path
 
-def add_vpt_out(abs_path):
-    path_set = tools.splitLastItem(abs_path, "\\", 1)
-    dataset = pullData(path_set[0])
-    if dataset == None:
-        tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
-    dataset["vpt_output_obj"] = vop.parseVptResults(abs_path)
-    # calFromPowerModel(dataset)
-    global loaded_file_num
-    loaded_file_num += 1
 
 def add_power(abs_path):
     path_set = tools.splitLastItem(abs_path, "\\", 1)
@@ -215,8 +205,19 @@ def add_power_runtime(abs_path):
         tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
     if POWER not in dataset["data_type"] :
         dataset["data_type"].append(POWER)
-    dataset["power_obj"]["power_data"]["Run Time"] = psp.parseHopperRuntime(abs_path, None)
-    calFromPowerModel(dataset)
+        if "power_obj" in dataset and "power_data" in dataset["power_obj"] and "Run Time" in dataset["power_obj"]["power_data"]:
+            dataset["power_obj"]["power_data"]["Run Time"] = psp.parseHopperRuntime(abs_path, None)
+        calFromPowerModel(dataset)
+        global loaded_file_num
+        loaded_file_num += 1
+
+def add_SR_out(abs_path):
+    path_set = tools.splitLastItem(abs_path, "\\", 1)
+    dataset = pullData(path_set[0])
+    if dataset == None:
+        tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
+    dataset["sr_output_obj"] = sop.parseSRoutResults(abs_path)
+    # calFromPowerModel(dataset)
     global loaded_file_num
     loaded_file_num += 1
 
@@ -248,9 +249,6 @@ def fileClassifier(abs_path, f):
     
     if f.find(CL_PASS) >= 0:
         createDataset(tools.splitLastItem(abs_path, "\\", 1)[0])
-    elif f == CL_VPT:
-        add_vpt_out(abs_path)
-        file_type = CL_VPT
     elif f.find(CL_ETL) >= 0 and f.find(CL_SOCWATCH) == -1 : 
         # print("ETL detected ", abs_path, f)
         add_etl(abs_path)
@@ -258,6 +256,9 @@ def fileClassifier(abs_path, f):
     elif f.find(CL_DAQ_SUMMARY) >= 0:
         add_power(abs_path)
         file_type = CL_DAQ_SUMMARY
+    elif f.find(CL_OUTPUT) >= 0:
+        add_SR_out(abs_path)
+        file_type = CL_OUTPUT
     elif f.find(CL_FLEX_SUMMARY) >= 0:
         add_power(abs_path)
         file_type = CL_FLEX_SUMMARY
@@ -288,7 +289,9 @@ def detectAndParseFile(path) :
         #     break
         if os.path.isfile(abs_path):
             fType = fileClassifier(abs_path, f)
-
+            # if fType == CL_SOCWATCH :
+            #     # after detecting first Socwatch ETL, and it's summary, no need to go further
+            #     break
         else:
             #recursive on a folder detection
             detectAndParseFile(abs_path)

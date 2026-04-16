@@ -16,7 +16,7 @@ import parsers.reporter as rpt
 import argparse
 
 
-parser = argparse.ArgumentParser(prog='Teams summary parser')
+parser = argparse.ArgumentParser(prog='Youtube 4K summary parser')
 parser.add_argument('-c', '--config', help='configuration path. json format, need to have all of -d -st and others')
 parser.add_argument('-i', '--input', help='input path. this will be the bese of the summray, will detect all files and folders from that path tree')
 parser.add_argument('-o', '--output', help='output path. location of file and file name')
@@ -215,10 +215,11 @@ def add_power_runtime(abs_path):
         tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
     if POWER not in dataset["data_type"] :
         dataset["data_type"].append(POWER)
-    dataset["power_obj"]["power_data"]["Run Time"] = psp.parseHopperRuntime(abs_path, None)
-    calFromPowerModel(dataset)
-    global loaded_file_num
-    loaded_file_num += 1
+    if "power_obj" in dataset and "power_data" in dataset["power_obj"] : 
+        dataset["power_obj"]["power_data"]["Run Time"] = psp.parseHopperRuntime(abs_path, None)
+        calFromPowerModel(dataset)
+        global loaded_file_num
+        loaded_file_num += 1
 
 def add_trace(abs_path):
     path_set = tools.splitLastItem(abs_path, "\\", 1)
@@ -236,9 +237,9 @@ def add_socwatch(abs_path):
         tools.errorAndExit("pulling data failed by using the Path as ID: " + abs_path)
     if SOCWATCH not in dataset["data_type"] :
         dataset["data_type"].insert(0, SOCWATCH)
-        dataset["socwatch_obj"] = soc.parseSocwatch(abs_path, socwatch_targets)
-        global loaded_file_num
-        loaded_file_num += 1
+    dataset["socwatch_obj"] = soc.parseSocwatch(abs_path, socwatch_targets)
+    global loaded_file_num
+    loaded_file_num += 1
 
 
 
@@ -288,7 +289,9 @@ def detectAndParseFile(path) :
         #     break
         if os.path.isfile(abs_path):
             fType = fileClassifier(abs_path, f)
-
+            # if fType == CL_SOCWATCH :
+            #     # after detecting first Socwatch ETL, and it's summary, no need to go further
+            #     break
         else:
             #recursive on a folder detection
             detectAndParseFile(abs_path)

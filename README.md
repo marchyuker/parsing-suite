@@ -17,6 +17,7 @@ A comprehensive framework for parsing and analyzing diverse workload performance
 | **bm_llama_parser.py** | Llama model analysis | [Details](./docs/llama-parser.md) |
 | **SA_ETL_first_epoch.py** | ETL first-epoch analysis | [Details](./docs/sa-etl-first-epoch.md) |
 | **socwatch_pp.py** | SocWatch ETL batch post-processor | [Details](./docs/socwatch_pp.md) |
+| **trace_plotter.py** | SocWatch `_trace.csv` section splitter and chart generator | [Details](./docs/trace_plotter.md) |
 | **Teams++.py** | Teams/AI mixed-source parser with Procyon integration | [Details](./docs/teams-plus-plus.md) |
 | **trace_power_slicer.py** | Power trace slicer by rails and time ranges | [Details](./docs/README_trace_slicer.md) |
 | **newSW_json_parser.py** | Socwatch JSON event analyzer with visualization | [Details](./docs/newSW_json_parser_usage.md) |
@@ -72,6 +73,15 @@ python socwatch_pp.py <input_folder>
 python socwatch_pp.py
 ```
 
+**For SocWatch _trace.csv plotting:**
+```bash
+python trace_plotter.py <trace_csv> [options]
+# List all sections without writing output:
+python trace_plotter.py <trace_csv> --list
+# Filter to specific metrics and plot:
+python trace_plotter.py <trace_csv> --filter "DDR Bandwidth|NPU Power|IGFX"
+```
+
 **For Socwatch JSON analysis:**
 ```bash
 python newSW_json_parser.py -i <swjson_file> -e "Event Name 1" "Event Name 2"
@@ -99,6 +109,7 @@ python parsers/fps_img_parser.py <image_or_folder> --debug
 - **Advanced workflows**: See [Collection_Parser documentation](./docs/collection-parser.md)
 - **Model-specific analysis**: Review [Phi_summary](./docs/phi-summary.md) or [Llama parser](./docs/llama-parser.md)
 - **SocWatch ETL processing**: See [socwatch_pp](./docs/socwatch_pp.md) for batch .etl file processing
+- **SocWatch trace plotting**: See [trace_plotter](./docs/trace_plotter.md) for `_trace.csv` section splitting and chart generation
 - **Teams/Procyon mixed parsing**: See [Teams++ guide](./docs/teams-plus-plus.md) for recursive dataset parsing and Excel export
 - **Power trace slicing**: See [trace_power_slicer](./docs/README_trace_slicer.md) for workload analysis
 - **Socwatch JSON analysis**: See [newSW_json_parser](./docs/newSW_json_parser_usage.md) for event visualization

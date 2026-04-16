@@ -185,8 +185,9 @@ class SocWatchProcessor:
         summary_csv_alt = output_dir / f"{etl_base_name}_summary.csv"
         wakeup_csv = output_dir / f"{etl_base_name}_WakeupAnalysis.csv"
         vtune_pwr = output_dir / f"{etl_base_name}.pwr"
+        trace_csv = output_dir / f"{etl_base_name}_trace.csv"
         
-        return summary_csv.exists() or summary_csv_alt.exists() or wakeup_csv.exists() or vtune_pwr.exists()
+        return summary_csv.exists() or summary_csv_alt.exists() or wakeup_csv.exists() or vtune_pwr.exists() or trace_csv.exists()
     
     def _copy_results_to_final(self, work_dir: Path, final_dir: Path, etl_base_name: str):
         """
@@ -725,6 +726,8 @@ class SocWatchProcessor:
                 cmd.extend(["-m", "-r", self.export_format])
             elif self.export_format == 'vtune':
                 cmd.extend(["-r", self.export_format])
+            elif self.export_format == 'int':
+                cmd.extend(["-r", "int"])
         
         # Add slice range parameter if specified
         if slice_range:
@@ -753,6 +756,8 @@ class SocWatchProcessor:
                 print(f"      -m -r {self.export_format} (export .swjson with extra details)")
             elif self.export_format == 'vtune':
                 print(f"      -r {self.export_format} (export .pwr VTune results)")
+            elif self.export_format == 'int':
+                print(f"      -r int (export _trace.csv over-time data)")
         if slice_range:
             print(f"      --result-slice-range {slice_range[0]},{slice_range[1]}")
         
@@ -977,7 +982,7 @@ def main():
             print("  --socwatch-dir <path>         Specify SocWatch directory or exe (skips version selection)")
             print("  -o, --output-dir <path>       Specify output directory (default: same as input)")
             print("  -f, --force                   Force reprocessing even if output already exists")
-            print("  -r <format>                   Export format: 'json' (swjson) or 'vtune' (.pwr)")
+            print("  -r <format>                   Export format: 'json' (swjson), 'vtune' (.pwr), or 'int' (_trace.csv over-time data)")
             print("  --slice-range <start,end>     Time slice range in milliseconds (can be specified multiple times)")
             print("\nModes:")
             print("  python socwatch_pp.py                    # GUI mode - select folder with dialog")
@@ -1029,14 +1034,16 @@ def main():
                 print("❌ -r requires a value: 'json' or 'vtune'")
                 sys.exit(1)
             r_value = args[i + 1].lower()
-            if r_value in ['json', 'vtune']:
+            if r_value in ['json', 'vtune', 'int']:
                 export_format = r_value
                 if r_value == 'json':
                     print(f"📊 .swjson export enabled (will use -m -r {r_value} flags)")
-                else:
+                elif r_value == 'vtune':
                     print(f"📊 VTune export enabled (will use -r {r_value} and generate .pwr)")
+                else:
+                    print(f"📊 Interval export enabled (will use -r int to generate _trace.csv)")
             else:
-                print(f"❌ Invalid value for -r: '{args[i + 1]}'. Expected 'json' or 'vtune'")
+                print(f"❌ Invalid value for -r: '{args[i + 1]}'. Expected 'json', 'vtune', or 'int'")
                 sys.exit(1)
             i += 1  # Skip next argument as it's the -r value
             

@@ -4,10 +4,6 @@ import parsers.reporter_picked as rpick
 
 
 
-def writeParsedSelectionInExcel(result_path, hobl_data, picks, socwatch_targets, PCIe_targets) :
-    rap.reportAllPowerAndType2(result_path, hobl_data, picks, socwatch_targets, PCIe_targets)
-
-
 def writeParsedAllInExcel(result_path, hobl_sets, socwatch_targets, PCIe_targets, picks) :
     rap.reportAllPowerAndType(result_path, hobl_sets, socwatch_targets, PCIe_targets, picks)
 
@@ -24,9 +20,7 @@ def writeParsedPhi(result_path, hobl_data, socwatch_targets, DAQ_target, PCIe_ta
     rpick.reportPickedData2(result_path, hobl_data, socwatch_targets, picks)
     rinf.reportInferencingOnlyPower(result_path, hobl_data, DAQ_target, picks) if picks['inferencingOnlyPower'] else print("[No inferencing only Power selected]") 
 
-def writeParsedMLC(result_path, mlc_data, socwatch_targets, PCIe_targets, picks) :
+# def writeParsedMLC(result_path, mlc_data, socwatch_targets, PCIe_targets, picks) :
 
-    print(mlc_data)
-
-    rap.reportAllPowerAndMLC(result_path, mlc_data, socwatch_targets, PCIe_targets, picks)
-    # rap.reportAllPowerAndType2(result_path, mlc_data, picks, socwatch_targets, PCIe_targets)
+#     print(mlc_data)
+#     rap.reportAllPowerAndMLC(result_path, mlc_data, socwatch_targets, PCIe_targets, picks)

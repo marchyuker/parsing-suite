@@ -159,7 +159,16 @@ def flatten_mlc_output_dic(entry) :
         return new_output
     else :
         return {}
-    
+
+def flatten_LPmode_sr_dic(entry):
+    if "sr_output_obj" in entry and "sr_output_data" in entry["sr_output_obj"] and "NOP" in entry["sr_output_obj"]['sr_output_data'] and "Affinity" in entry["sr_output_obj"]['sr_output_data'] :
+        copied = entry["sr_output_obj"]['sr_output_data'].copy()
+        copied["NOP"] = entry["sr_output_obj"]['sr_output_data']["NOP"]
+        copied["Affinity"] = entry["sr_output_obj"]['sr_output_data']["Affinity"]
+        return copied
+    else :
+        return {}
+        
 def flatten_power_dic(entry, picks):
     if "power_obj" in entry and "power_data" in entry["power_obj"] :
         copied = entry["power_obj"]['power_data'].copy()

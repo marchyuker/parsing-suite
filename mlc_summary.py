@@ -359,7 +359,7 @@ def main():
     detectAndParseFile(BASE)
     pck.checkAndMarkPower(hobl_sets, picks)
     # print("====[hobl_sets]", hobl_sets)
-    rpt.writeParsedMLC(result_path, hobl_sets, socwatch_targets, PCIe_targets, picks)
+    rpt.writeParsedAllInExcel(result_path, hobl_sets, socwatch_targets, PCIe_targets, picks)
 
 start_time = time.perf_counter()
 main()

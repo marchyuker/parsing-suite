@@ -11,7 +11,7 @@ A simple Python tool for batch processing SocWatch .etl files using socwatch.exe
 - 📁 **Recursive scanning** for .etl files in input folders
 - 🎯 **Automated processing** using file prefixes as input parameters
 - ⏱️ **Time slicing** - Process specific time ranges from traces (supports multiple slices per file)
-- 📊 **Export Formats** - Generate `.swjson` (`-r json`) or VTune `.pwr` (`-r vtune`) outputs
+- 📊 **Export Formats** - Generate `.swjson` (`-r json`), VTune `.pwr` (`-r vtune`), or over-time `_trace.csv` (`-r int`) outputs
 - 📈 **Comprehensive reporting** of processing results
 - ✅ **Simple single-file solution** - no external dependencies
 - 🛠️ **Flexible SocWatch location** - supports custom installation paths
@@ -85,6 +85,9 @@ python socwatch_pp.py -r json C:\data\traces
 
 # Export VTune .pwr format
 python socwatch_pp.py -r vtune C:\data\traces
+
+# Export over-time interval data (_trace.csv)
+python socwatch_pp.py -r int C:\data\traces
 
 # Force reprocessing even if output already exists
 python socwatch_pp.py -f C:\data\traces
@@ -215,6 +218,35 @@ python socwatch_pp.py -r vtune C:\data\traces
 python socwatch_pp.py -r vtune --slice-range 1000,15000 -o D:\results C:\data\traces
 ```
 
+## Interval Export Feature
+
+The `-r int` option exports per-interval (over-time) data in `_trace.csv` format:
+
+- **Format**: `-r int`
+- **SocWatch Flags**: Passes only `-r int` to socwatch.exe (no `-m` flag)
+- **Output**: Generates `{workload}_trace.csv` with per-interval metric values
+- **Use Cases**:
+  - Analyze how power/performance metrics change over time
+  - Plot time-series charts of CPU/GPU/memory activity
+  - Identify transient events or ramp-up behavior
+
+**Example Usage:**
+```bash
+# Export over-time interval data
+python socwatch_pp.py -r int C:\data\traces
+
+# Combine with custom output directory
+python socwatch_pp.py -r int -o D:\results C:\data\traces
+
+# Combine with time slicing
+python socwatch_pp.py -r int --slice-range 1000,15000 C:\data\traces
+```
+
+**What gets generated:**
+- `{workload}_trace.csv` with per-interval metric values over time
+
+**Note:** Unlike `-r json`, the `-r int` flag does **not** add the `-m` (detailed metrics) flag — it passes only `-r int` directly to socwatch.exe.
+
 ## How It Works
 
 1. **SocWatch Discovery**: The tool automatically locates SocWatch installations using:
@@ -237,6 +269,7 @@ python socwatch_pp.py -r vtune --slice-range 1000,15000 -o D:\results C:\data\tr
 5. **Smart Skip Detection**: Before processing, checks if output already exists:
    - Looks for `{workload_name}.csv` summary file
    - Looks for `{workload_name}_WakeupAnalysis.csv` file
+   - Looks for `{workload_name}_trace.csv` file (from `-r int`)
    - Skips already-processed collections to save time
    - Can be overridden with `-f` or `--force` flag to reprocess
 
@@ -246,6 +279,7 @@ python socwatch_pp.py -r vtune --slice-range 1000,15000 -o D:\results C:\data\tr
    - Runs: `socwatch.exe -i <prefix> -o <output_folder>`
    - With `-r json`: `socwatch.exe -i <prefix> -o <output_folder> -m -r json` (exports `.swjson`)
    - With `-r vtune`: `socwatch.exe -i <prefix> -o <output_folder> -r vtune` (exports `.pwr`)
+   - With `-r int`: `socwatch.exe -i <prefix> -o <output_folder> -r int` (exports `_trace.csv`)
    - Changes to the file's directory before processing
    - For network paths: copies results from temp to final location
 

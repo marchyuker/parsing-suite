@@ -29,6 +29,7 @@ def _ensure_matplotlib() -> bool:
     try:
         import matplotlib
         matplotlib.use('Agg')
+        matplotlib.rcParams['agg.path.chunksize'] = 10000
         import matplotlib.pyplot as _plt
         plt = _plt
         return True
